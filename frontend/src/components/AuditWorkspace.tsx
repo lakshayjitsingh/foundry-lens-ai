@@ -70,6 +70,9 @@ export const AuditWorkspace: React.FC<AuditWorkspaceProps> = ({ audit }) => {
           <span className="rounded-md bg-[#ea8b21]/14 px-2 py-0.5 font-bold text-[#c76e0d] dark:bg-[#ea8b21]/20 dark:text-[#f5b461]">
             {telemetry.model}
           </span>
+          <span className="rounded-md bg-[#faf5ec] px-2 py-0.5 font-semibold text-[#c76e0d] tabular-nums border border-[#ebdcc8] dark:border-white/10 dark:bg-white/6 dark:text-[#f5b461]">
+            T {telemetry.temperature.toFixed(1)}
+          </span>
           <span className="rounded-md bg-[#faf5ec] px-2 py-0.5 text-[#475569] tabular-nums border border-[#ebdcc8] dark:border-white/10 dark:bg-white/6 dark:text-amber-100/75">
             {telemetry.latency_ms}ms
           </span>

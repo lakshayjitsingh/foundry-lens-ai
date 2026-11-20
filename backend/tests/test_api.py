@@ -187,3 +187,22 @@ def test_indirect_injection_in_document_is_quarantined_not_blocked() -> None:
     assert body["safety_audit"]["blocked"] is False
     assert "[QUARANTINED_PROMPT_INJECTION]" in body["model_input_text"]
     assert "[REDACTED_EMAIL]" in body["model_input_text"]
+
+
+def test_temperature_adapts_summary_style_and_confidence() -> None:
+    sample = get_sample_by_id("azure_cloud_invoice")
+    assert sample is not None
+
+    low_t = client.post(
+        "/api/audit",
+        json={"document_text": sample["text"], "temperature": 0.1},
+    ).json()
+    high_t = client.post(
+        "/api/audit",
+        json={"document_text": sample["text"], "temperature": 0.9},
+    ).json()
+
+    assert low_t["extracted"]["plain_language_summary"] != high_t["extracted"]["plain_language_summary"]
+    assert low_t["extracted"]["confidence"] > high_t["extracted"]["confidence"]
+    assert low_t["telemetry"]["temperature"] == 0.1
+    assert high_t["telemetry"]["temperature"] == 0.9
