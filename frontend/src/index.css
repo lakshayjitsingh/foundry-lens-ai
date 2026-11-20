@@ -1,0 +1,224 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================================
+   SankhyaSetu AI Signature Palette + Figma-to-Code Tokens
+   Cream Canvas: #faf5ec | Ivory Card: #fcfaf6 | Sand Border: #ebdcc8 / #eee3d3
+   Primary Saffron: #ea8b21 | Hover Saffron: #d97d16 | Ink: #1e293b
+   ============================================================================ */
+:root {
+  --ss-cream: #faf5ec;
+  --ss-ivory: #fcfaf6;
+  --ss-sand: #ebdcc8;
+  --ss-sand-soft: #eee3d3;
+  --ss-saffron: #ea8b21;
+  --ss-saffron-hover: #d97d16;
+  --ss-ink: #1e293b;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* SankhyaSetu Warm Ivory & Espresso Glass Cards */
+.foundry-glass {
+  background: rgba(252, 250, 246, 0.86);
+  border: 1px solid #ebdcc8;
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 12px 32px -14px rgba(180, 102, 18, 0.14);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+
+.dark .foundry-glass {
+  background: rgba(30, 24, 18, 0.78);
+  border: 1px solid rgba(234, 139, 33, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(250, 245, 236, 0.06),
+    0 20px 44px -18px rgba(0, 0, 0, 0.72),
+    0 0 26px -14px rgba(234, 139, 33, 0.22);
+}
+
+.foundry-glass-hover:hover {
+  border-color: rgba(234, 139, 33, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 16px 36px -14px rgba(234, 139, 33, 0.22);
+}
+
+.dark .foundry-glass-hover:hover {
+  border-color: rgba(234, 139, 33, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(250, 245, 236, 0.12),
+    0 22px 48px -16px rgba(234, 139, 33, 0.28);
+}
+
+/* Saffron Shimmer Primary CTA */
+.foundry-btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #d97d16 0%, #ea8b21 55%, #f59e0b 100%);
+  box-shadow:
+    0 10px 24px -6px rgba(234, 139, 33, 0.52),
+    inset 0 1px 0 rgba(255, 250, 240, 0.35);
+}
+
+.foundry-btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255, 250, 240, 0.34) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.foundry-btn-primary:hover:not(:disabled)::after {
+  transform: translateX(120%);
+}
+
+/* Special Effects Animations */
+@keyframes auroraDriftA {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(40px, -28px, 0) scale(1.09);
+  }
+}
+
+@keyframes auroraDriftB {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-44px, 26px, 0) scale(1.1);
+  }
+}
+
+@keyframes pulseBeacon {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.75);
+  }
+}
+
+@keyframes scanSweep {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(420%);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dashFlow {
+  from {
+    stroke-dashoffset: 240;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-aurora-a {
+  animation: auroraDriftA 18s ease-in-out infinite;
+}
+
+.animate-aurora-b {
+  animation: auroraDriftB 22s ease-in-out infinite;
+}
+
+.animate-pulse-beacon {
+  animation: pulseBeacon 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-scan-sweep {
+  animation: scanSweep 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-fade-up {
+  animation: fadeSlideUp 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-dash-flow {
+  stroke-dasharray: 8 12;
+  animation: dashFlow 16s linear infinite;
+}
+
+/* SankhyaSetu Custom Saffron Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #faf5ec;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #14100c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ea8b21;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d97d16;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora-a,
+  .animate-aurora-b,
+  .animate-pulse-beacon,
+  .animate-scan-sweep,
+  .animate-fade-up,
+  .animate-dash-flow {
+    animation: none !important;
+  }
+}
