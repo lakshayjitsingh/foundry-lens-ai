@@ -206,3 +206,23 @@ def test_temperature_adapts_summary_style_and_confidence() -> None:
     assert low_t["extracted"]["confidence"] > high_t["extracted"]["confidence"]
     assert low_t["telemetry"]["temperature"] == 0.1
     assert high_t["telemetry"]["temperature"] == 0.9
+
+
+def test_different_models_and_pii_toggle_produce_distinct_results() -> None:
+    sample = get_sample_by_id("pharmacy_receipt_discrepancy")
+    assert sample is not None
+
+    gpt = client.post(
+        "/api/audit",
+        json={"document_text": sample["text"], "model": "gpt-4o-mini", "temperature": 0.2, "privacy_shield": True},
+    ).json()
+    phi = client.post(
+        "/api/audit",
+        json={"document_text": sample["text"], "model": "Phi-4", "temperature": 0.2, "privacy_shield": False},
+    ).json()
+
+    assert gpt["extracted"]["plain_language_summary"] != phi["extracted"]["plain_language_summary"]
+    assert "[REDACTED_EMAIL]" in gpt["model_input_text"]
+    assert "aarav.mehta@example.com" in phi["model_input_text"]
+    assert gpt["responsible_ai_scorecard"][0]["status"] == "pass"
+    assert phi["responsible_ai_scorecard"][0]["status"] == "warn"

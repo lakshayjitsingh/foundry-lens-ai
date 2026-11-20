@@ -173,8 +173,9 @@ def _offline_extract_document(
     text: str,
     has_image: bool = False,
     temperature: float = 0.2,
+    model_name: str = "gpt-4o-mini",
 ) -> dict[str, Any]:
-    """Deterministic fallback parser that adapts tone/verbosity to Temperature (T)."""
+    """Deterministic fallback parser that adapts tone/style to both Model and Temperature (T)."""
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     if not lines and has_image:
         return {
@@ -274,66 +275,102 @@ def _offline_extract_document(
         elif ln.lower().startswith(("note:", "status:")):
             key_requirements.append(ln)
 
+    if model_name == "Phi-4":
+        model_prefix = "Phi-4 SLM Reasoning"
+        conf_offset = -0.01
+    elif model_name == "Llama-3.3-70B-Instruct":
+        model_prefix = "Llama 3.3 70B Analysis"
+        conf_offset = -0.02
+    else:
+        model_prefix = "GPT-4o mini Extraction"
+        conf_offset = 0.0
+
     if temperature <= 0.3:
         # Strict deterministic regime: terse, clinical, fact-only summary
         if line_items and stated_total is not None:
-            summary = (
-                f"[Strict · T={temperature:.1f}] {doc_type} | Issuer: {issuer} | Date: {doc_date} | "
-                f"{len(line_items)} line item(s) | Stated Total: {currency} {stated_total:.2f}."
-            )
+            if model_name == "Phi-4":
+                summary = (
+                    f"[{model_prefix} · T={temperature:.1f}] Parsed {len(line_items)} charge entries "
+                    f"from {issuer} ({doc_date}). Printed total: {currency} {stated_total:.2f}. "
+                    f"Arithmetic cross-check delegated to deterministic tool."
+                )
+            elif model_name == "Llama-3.3-70B-Instruct":
+                summary = (
+                    f"[{model_prefix} · T={temperature:.1f}] Structured audit complete for {issuer} "
+                    f"({doc_type}, Ref {reference_id}): {len(line_items)} itemized lines totaling "
+                    f"{currency} {stated_total:.2f} printed."
+                )
+            else:
+                summary = (
+                    f"[{model_prefix} · T={temperature:.1f}] {doc_type} | Issuer: {issuer} | Date: {doc_date} | "
+                    f"{len(line_items)} line item(s) | Stated Total: {currency} {stated_total:.2f}."
+                )
         elif key_dates:
             summary = (
-                f"[Strict · T={temperature:.1f}] {doc_type} | Issuer: {issuer} | "
+                f"[{model_prefix} · T={temperature:.1f}] {doc_type} | Issuer: {issuer} | "
                 f"{len(key_requirements)} requirement(s), {len(key_dates)} deadline(s) extracted."
             )
         else:
             summary = (
-                f"[Strict · T={temperature:.1f}] {doc_type} from {issuer} ({doc_date}). "
+                f"[{model_prefix} · T={temperature:.1f}] {doc_type} from {issuer} ({doc_date}). "
                 f"Structured fields extracted deterministically."
             )
-        confidence = 0.96
+        confidence = round(0.96 + conf_offset, 2)
     elif temperature <= 0.6:
         # Balanced plain-English regime
         if line_items and stated_total is not None:
-            summary = (
-                f"This {doc_type.lower()} from {issuer} (dated {doc_date}) lists {len(line_items)} "
-                f"itemized charges with a stated total of {currency} {stated_total:.2f}. "
-                f"Review the deterministic math audit below to confirm all charges add up accurately."
-            )
+            if model_name == "Phi-4":
+                summary = (
+                    f"Phi-4 SLM summary: {issuer} issued this {doc_type.lower()} on {doc_date} with "
+                    f"{len(line_items)} billed items and a stated balance of {currency} {stated_total:.2f}. "
+                    f"Verify the computed subtotal against the printed total below."
+                )
+            elif model_name == "Llama-3.3-70B-Instruct":
+                summary = (
+                    f"Llama 3.3 70B review: This {doc_type.lower()} from {issuer} ({doc_date}) contains "
+                    f"{len(line_items)} itemized charges amounting to a printed {currency} {stated_total:.2f}, "
+                    f"audited alongside Responsible AI privacy and arithmetic checks."
+                )
+            else:
+                summary = (
+                    f"This {doc_type.lower()} from {issuer} (dated {doc_date}) lists {len(line_items)} "
+                    f"itemized charges with a stated total of {currency} {stated_total:.2f}. "
+                    f"Review the deterministic math audit below to confirm all charges add up accurately."
+                )
         elif key_dates:
             summary = (
-                f"This {doc_type.lower()} from {issuer} outlines {len(key_requirements)} mandatory "
+                f"[{model_prefix}] This {doc_type.lower()} from {issuer} outlines {len(key_requirements)} mandatory "
                 f"action item(s) and {len(key_dates)} key deadline(s). Sensitive contact details were "
                 f"checked by the Responsible AI Privacy Shield."
             )
         else:
             summary = (
-                f"Extracted structured metadata from {issuer} ({doc_type}). "
+                f"[{model_prefix}] Extracted structured metadata from {issuer} ({doc_type}). "
                 f"You can inspect redacted identifiers and ask grounded follow-up questions below."
             )
-        confidence = 0.93
+        confidence = round(0.93 + conf_offset, 2)
     else:
         # Expressive / high-temperature regime: richer narrative + advisory phrasing
         if line_items and stated_total is not None:
             summary = (
-                f"Looking closely at this {doc_type.lower()} issued by {issuer} on {doc_date}, "
+                f"[{model_prefix}] Looking closely at this {doc_type.lower()} issued by {issuer} on {doc_date}, "
                 f"there are {len(line_items)} separate billed items totaling a printed {currency} {stated_total:.2f}. "
                 f"Before approving payment or claiming reimbursement, cross-check the deterministic math audit "
                 f"and verify every redacted personal detail under the PII tab."
             )
         elif key_dates:
             summary = (
-                f"Here is a clear walkthrough of the {doc_type.lower()} from {issuer}: it lays out "
+                f"[{model_prefix}] Here is a clear walkthrough of the {doc_type.lower()} from {issuer}: it lays out "
                 f"{len(key_requirements)} key action item(s) alongside {len(key_dates)} upcoming deadline(s) "
                 f"you should put on your calendar right away, while Privacy Shield keeps staff contact info safe."
             )
         else:
             summary = (
-                f"I analyzed this {doc_type.lower()} from {issuer} in expressive mode (T={temperature:.1f}). "
+                f"[{model_prefix}] I analyzed this {doc_type.lower()} from {issuer} in expressive mode (T={temperature:.1f}). "
                 f"Key metadata, privacy findings, and citations are ready below—note that lower temperatures "
                 f"(T <= 0.3) are recommended when auditing strict financial figures."
             )
-        confidence = 0.87
+        confidence = round(0.87 + conf_offset, 2)
 
     citations = [ln for ln in lines[:6] if len(ln) > 15][:3]
     if total_match:
@@ -427,6 +464,7 @@ def extract_structured_document(
         document_text,
         has_image=bool(image_data_url),
         temperature=temperature,
+        model_name=chosen_model,
     )
     elapsed_ms = max(18, round((time.perf_counter() - started) * 1000))
     est_prompt_tokens = max(120, len(user_prompt_text.split()) * 2)

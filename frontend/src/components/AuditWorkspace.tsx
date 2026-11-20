@@ -82,6 +82,26 @@ export const AuditWorkspace: React.FC<AuditWorkspaceProps> = ({ audit }) => {
           <span className="rounded-md bg-emerald-500/12 px-2 py-0.5 font-semibold text-emerald-700 tabular-nums dark:text-emerald-300">
             {Math.round(extracted.confidence * 100)}%
           </span>
+          <span
+            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-semibold tabular-nums ${
+              audit.privacy_shield_enabled
+                ? 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300'
+                : piiAudit.total_redacted > 0
+                  ? 'bg-rose-500/14 text-rose-700 dark:text-rose-300'
+                  : 'bg-[#faf5ec] text-[#475569] border border-[#ebdcc8] dark:border-white/10 dark:bg-white/6 dark:text-amber-100/70'
+            }`}
+          >
+            {audit.privacy_shield_enabled ? (
+              <ShieldCheck className="h-3 w-3" />
+            ) : (
+              <ShieldAlert className="h-3 w-3" />
+            )}
+            {audit.privacy_shield_enabled
+              ? `PII Masked (${piiAudit.total_redacted})`
+              : piiAudit.total_redacted > 0
+                ? `PII Exposed (${piiAudit.total_redacted})`
+                : 'PII Off'}
+          </span>
         </div>
 
         <div className="flex items-center gap-1.5">
