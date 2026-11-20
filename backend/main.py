@@ -28,6 +28,7 @@ from foundry_client import (  # noqa: E402
 from responsible_ai import (  # noqa: E402
     build_responsible_ai_scorecard,
     check_content_safety,
+    quarantine_indirect_injections,
     scan_and_redact_pii,
     verify_line_item_totals,
 )
@@ -173,8 +174,10 @@ def audit_document(payload: AuditRequest) -> dict[str, Any]:
         )
 
     # 1. Responsible AI: Prompt Shield & Content Safety pre-check
+    # Block harmful content outright; quarantine indirect prompt-injection phrases inside uploaded docs
     safety_audit = check_content_safety(payload.document_text)
-    if safety_audit["blocked"]:
+    non_injection_flags = [c for c in safety_audit["flagged_categories"] if c != "prompt_injection"]
+    if non_injection_flags:
         raise HTTPException(
             status_code=400,
             detail={
@@ -183,9 +186,19 @@ def audit_document(payload: AuditRequest) -> dict[str, Any]:
             },
         )
 
+    safe_doc_text = payload.document_text
+    if safety_audit["prompt_injection_detected"]:
+        safe_doc_text = quarantine_indirect_injections(safe_doc_text)
+        safety_audit = {
+            **safety_audit,
+            "blocked": False,
+            "risk_level": "medium",
+            "reason": "Indirect prompt-injection text inside document was quarantined before model inference.",
+        }
+
     # 2. Responsible AI: Privacy & Security PII Scan + Redaction
-    pii_audit = scan_and_redact_pii(payload.document_text)
-    text_for_model = pii_audit["redacted_text"] if payload.privacy_shield else payload.document_text
+    pii_audit = scan_and_redact_pii(safe_doc_text)
+    text_for_model = pii_audit["redacted_text"] if payload.privacy_shield else safe_doc_text
 
     # 3. Microsoft Foundry Content Understanding Extraction
     result = extract_structured_document(

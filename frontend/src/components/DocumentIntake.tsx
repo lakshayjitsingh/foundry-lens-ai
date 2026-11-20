@@ -5,6 +5,7 @@ import {
   Loader2,
   Play,
   Shield,
+  ShieldCheck,
   Upload,
   X,
 } from 'lucide-react';
@@ -224,13 +225,13 @@ export const DocumentIntake: React.FC<DocumentIntakeProps> = ({
           onClick={() => onTogglePrivacyShield(!privacyShield)}
           aria-pressed={privacyShield}
           title={privacyShield ? 'PII Shield: ON' : 'PII Shield: OFF'}
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition ${
-            privacyShield
-              ? 'border-emerald-500/35 bg-emerald-500/12 text-emerald-800 dark:text-emerald-300'
-              : 'border-amber-500/35 bg-amber-500/15 text-amber-800 dark:text-amber-300'
-          }`}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#ebdcc8] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#1e293b] transition hover:border-[#ea8b21] dark:border-[#ea8b21]/25 dark:bg-[#120B08] dark:text-[#faf5ec] dark:hover:border-[#ea8b21]"
         >
-          <Shield className="h-3.5 w-3.5" />
+          {privacyShield ? (
+            <ShieldCheck className="h-4 w-4 text-[#ea8b21]" aria-hidden="true" />
+          ) : (
+            <Shield className="h-4 w-4 text-[#94a3b8]" aria-hidden="true" />
+          )}
           <span className="font-mono text-[11px]">PII</span>
         </button>
       </div>

@@ -162,6 +162,14 @@ def check_content_safety(text: str) -> dict[str, Any]:
     }
 
 
+def quarantine_indirect_injections(text: str) -> str:
+    """Neutralize indirect prompt-injection strings embedded inside uploaded documents."""
+    sanitized = text
+    for pat in PROMPT_INJECTION_PATTERNS:
+        sanitized = pat.sub("[QUARANTINED_PROMPT_INJECTION]", sanitized)
+    return sanitized
+
+
 def verify_line_item_totals(
     line_items: list[dict[str, Any]],
     tax: float | None,
